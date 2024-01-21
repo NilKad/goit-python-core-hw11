@@ -27,13 +27,17 @@ class Phone(Field):
             raise ValueError(f"{phone} not correct format")
         super().__init__(str(phone))
 
-    #     pass
+
+class Birthday(Field):
+    def __init__(self, birthday = None):
+        super().__init__(birthday)
 
 
 class Record:
     def __init__(self, name):
         self.name = Name(name)
         self.phones = []
+        self.birthday = None
 
     # реалізація класу
     def find_phone(self, phone):
@@ -56,9 +60,12 @@ class Record:
         if not phone_el:
             raise ValueError(f"{phone} not found")
         phone_el.value = new_phone
+    
+    def set_birthday(self, birthday):
+        self.birthday = Birthday(birthday)
 
     def __str__(self):
-        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
+        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}, birthday: {self.birthday}"
 
 
 class AddressBook(UserDict):
@@ -89,10 +96,11 @@ class AddressBook(UserDict):
 
 book = AddressBook()
 
-# b1 = Record("Alex")
-# b1.add_phone("0503220000")
-# b1.add_phone("0673220000")
-# print(b1)
+b1 = Record("Alex")
+b1.add_phone("0503220000")
+b1.add_phone("0673220000")
+b1.set_birthday("2000-03-15")
+print(b1)
 # book.add_record(b1)
 # print(f'find_phone: {b1.find_phone("0503220000")}')
 # book.get("Alex").edit_phone("0503220000", "0953220000")
