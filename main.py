@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import sys
 from collections import UserDict
 
@@ -6,6 +7,30 @@ from collections import UserDict
 
 # from xml.etree.ElementPath import find
 
+
+class Iterrable:
+    def __init__(self, some_object, per_page):
+        self.some_object = some_object
+        self.current = 0
+        self.per_page = per_page
+        self.keys = list(self.some_object.keys())
+        self.acc = []
+
+    def __next__(self):
+        if self.current < len(self.some_object):
+            while True:
+                res = self.some_object[self.keys[self.current]]
+                self.acc.append(res)
+                self.current += 1
+
+                if self.current % self.per_page == 0 or self.current >= len(
+                    self.some_object
+                ):
+                    res = self.acc
+                    self.acc = []
+                    return res
+
+        raise StopIteration
 
 class Field:
     def __init__(self, value):
@@ -29,7 +54,7 @@ class Phone(Field):
 
 
 class Birthday(Field):
-    def __init__(self, birthday = None):
+    def __init__(self, birthday=None):
         super().__init__(birthday)
 
 
@@ -60,9 +85,33 @@ class Record:
         if not phone_el:
             raise ValueError(f"{phone} not found")
         phone_el.value = new_phone
-    
+
+    # @property
+    # def birthday(self):
+    #     return self._birthday
+
+    # @birthday.setter
     def set_birthday(self, birthday):
+        if not birthday:
+            self.birthday = Birthday(birthday)
+            return
+
+        try:
+            datetime.strptime(birthday, "%Y-%m-%d").date()
+        except ValueError as e:
+            print(f"Birthday {birthday} invalid format")
+            raise ValueError(e)
         self.birthday = Birthday(birthday)
+
+    def days_to_birthday(self):
+        if self.birthday:
+            cur_date = datetime.now().date()
+            delta_date = (self.birthday.replace(year=cur_date.year) - cur_date).days
+            if delta_date < 0:
+                delta_date = (
+                    self.birthday.replace(year=cur_date.year + 1) - cur_date
+                ).days
+            return delta_date
 
     def __str__(self):
         return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}, birthday: {self.birthday}"
@@ -70,6 +119,9 @@ class Record:
 
 class AddressBook(UserDict):
     # реалізація класу
+
+    # def __init__(self):
+    #     self.per_page = 3
 
     def find(self, string):
         # print(f'self: {self}')
@@ -82,7 +134,7 @@ class AddressBook(UserDict):
         return None
 
     def add_record(self, record):
-        print(f"record: {record}")
+        print(f"add_record: {record}")
         self.data[record.name.value] = record
         # self.data[record.name.value] = '123s'
 
@@ -93,20 +145,35 @@ class AddressBook(UserDict):
                 self.data.__delitem__(name)
                 break
 
+    def __iter__(self):
+        # print("!!!Iterable")
+        return Iterrable(self.data, 3)
+
 
 book = AddressBook()
 
 b1 = Record("Alex")
 b1.add_phone("0503220000")
 b1.add_phone("0673220000")
-b1.set_birthday("2000-03-15")
+# b1.set_birthday("2000-03-15")
+# print(f"days_to_birthday: {b1.days_to_birthday()}")
+# b1.birthday = "2000-03-15"
 print(b1)
-# book.add_record(b1)
+book.add_record(b1)
 # print(f'find_phone: {b1.find_phone("0503220000")}')
 # book.get("Alex").edit_phone("0503220000", "0953220000")
 # book.get("Alex").remove_phone("0673220001")
 # print(b1)
 
+for i in range(1, 15):
+    rec1 = Record(f"Alex{i}")
+    rec1.add_phone(f"05032200{i:02}")
+    book.add_record(rec1)
+
+print(book)
+
+for e in book:
+    print(e)
 
 # b2 = Record("Bob")
 # b2.add_phone("111")
