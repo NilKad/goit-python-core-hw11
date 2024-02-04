@@ -2,11 +2,6 @@ from datetime import datetime, timedelta
 import sys
 from collections import UserDict
 
-# import traceback
-# from types import NoneType
-
-# from xml.etree.ElementPath import find
-
 
 class Iterrable:
     def __init__(self, some_object, per_page):
@@ -31,6 +26,7 @@ class Iterrable:
                     return res
 
         raise StopIteration
+
 
 class Field:
     def __init__(self, value):
